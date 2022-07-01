@@ -519,6 +519,10 @@ func supportsInterface{
     if interfaceId == ERC165_ACCOUNT_INTERFACE:
         return (TRUE)
     end 
+    # Some code change (should never enter this branch) to change the contract class hash
+    if interfaceId == 0x01ffc9a6:
+        return (TRUE)
+    end
     return (FALSE)
 end
 

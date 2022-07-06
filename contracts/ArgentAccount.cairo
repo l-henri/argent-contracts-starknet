@@ -112,7 +112,7 @@ end
 ####################
 
 @storage_var
-func _current_nonce() -> (res: felt):
+func _current_nonce(index: felt) -> (res: felt):
 end
 
 @storage_var
@@ -174,7 +174,8 @@ func __execute__{
         call_array: CallArray*,
         calldata_len: felt,
         calldata: felt*,
-        nonce: felt
+        nonce_len: felt,
+        nonce: felt*
     ) -> (
         retdata_size: felt,
         retdata: felt*
@@ -194,7 +195,7 @@ func __execute__{
     #################################################
 
     # validate and bump nonce
-    validate_and_bump_nonce(nonce)
+    validate_and_bump_nonce(nonce_len, nonce)
 
     # get the tx info
     let (tx_info) = get_tx_info()
@@ -527,8 +528,8 @@ func get_nonce{
         syscall_ptr: felt*, 
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
-    } () -> (nonce: felt):
-    let (res) = _current_nonce.read()
+    } (index: felt) -> (nonce: felt):
+    let (res) = _current_nonce.read(index)
     return (nonce=res)
 end
 
@@ -644,13 +645,14 @@ func validate_and_bump_nonce{
         pedersen_ptr: HashBuiltin*,
         range_check_ptr
     } (
-        message_nonce: felt
+        message_nonce_len: felt,
+        message_nonce: felt*
     ) -> ():
-    let (current_nonce) = _current_nonce.read()
+    let (current_nonce) = _current_nonce.read(message_nonce[0])
     with_attr error_message("nonce invalid"):
-        assert current_nonce = message_nonce
+        assert current_nonce = message_nonce[1]
     end
-    _current_nonce.write(current_nonce + 1)
+    _current_nonce.write(message_nonce[0], current_nonce + 1)
     return()
 end
 
